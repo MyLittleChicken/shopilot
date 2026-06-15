@@ -1,0 +1,4 @@
+#!/bin/sh
+# git pre-commit 훅 — 모든 커밋터에게 적용 (Claude 도구와 무관).
+# core.hooksPath=.githooks 로 연결된다(루트 package.json prepare 스크립트).
+node .githooks/precommit.mjs

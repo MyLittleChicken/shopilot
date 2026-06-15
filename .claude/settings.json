@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/block-client-secrets.mjs"],
+            "statusMessage": "보안 검사: 클라이언트 시크릿"
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/block-hardcoded-secrets.mjs"],
+            "statusMessage": "보안 검사: 하드코딩 키"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-git-add.mjs"],
+            "statusMessage": "보안 검사: git 스테이징"
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/scan-staged-on-commit.mjs"],
+            "statusMessage": "보안 검사: 커밋 시크릿 스캔"
+          }
+        ]
+      }
+    ]
+  }
+}
