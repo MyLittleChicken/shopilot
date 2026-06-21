@@ -21,6 +21,8 @@ build/
 out/
 .turbo/
 *.tsbuildinfo
+# Next.js 생성물 (빌드마다 재생성)
+next-env.d.ts
 
 # ─────────────────────────────────────────────
 #  Test / coverage
