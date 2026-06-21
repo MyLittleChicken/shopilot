@@ -7,7 +7,7 @@ afterEach(cleanup);
 
 const product = ProductSchema.parse({
   id: "w1",
-  title: "드럼 세탁기 12kg",
+  title: "드럼 세탁기",
   brand: "워시킹",
   price: 690000,
   rating: 4.3,
@@ -18,7 +18,7 @@ const product = ProductSchema.parse({
 describe("ProductCard", () => {
   it("제목과 가격을 보여준다", () => {
     render(<ProductCard product={product} />);
-    expect(screen.getByText("드럼 세탁기 12kg")).toBeTruthy();
+    expect(screen.getByText("드럼 세탁기")).toBeTruthy();
     expect(screen.getByText(/690,000/)).toBeTruthy();
   });
 
