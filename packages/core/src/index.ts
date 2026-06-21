@@ -9,5 +9,6 @@ export { appliances } from "./fixtures/appliances";
 export { applianceProfile } from "./profiles/appliance";
 export { createRunAgent, createDefaultRunAgent } from "./agent";
 export { MockLLMAdapter } from "./mock-llm";
+export { ClaudeAdapter } from "./claude-adapter";
 export { recommend } from "./recommend";
 export { toLLMChunks } from "./llm-stream";
