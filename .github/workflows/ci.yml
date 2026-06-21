@@ -17,9 +17,10 @@ jobs:
       # packageManager 필드(pnpm@11.5.2)를 읽어 버전을 맞춘다.
       - uses: pnpm/action-setup@v4
 
+      # pnpm@11.5.2(packageManager)는 Node >=22.13을 요구한다(node:sqlite 의존). Node 20은 크래시.
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
