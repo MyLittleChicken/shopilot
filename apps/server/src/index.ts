@@ -4,10 +4,13 @@ import { streamSSE } from "hono/streaming";
 import { cors } from "hono/cors";
 import { ChatRequestSchema } from "@shopilot/schemas";
 import type { AgentEvent } from "@shopilot/schemas";
-import { runAgent } from "@shopilot/core";
+import { createDefaultRunAgent } from "@shopilot/core";
 
 // 두뇌 — 에이전트·어댑터·시크릿·SSE. 시크릿(LLM 키 등)은 여기(서버)에서만 process.env로 읽는다.
 const app = new Hono();
+
+// 컴포지션 루트 — 목 deps를 조립해 파이프라인을 한 번 만든다. 실데이터 전환 시 여기만 바꾼다.
+const runAgent = createDefaultRunAgent();
 
 // 위젯은 외부 도메인에서 호출 → cross-origin 허용. 운영에선 CORS_ORIGIN으로 제한.
 app.use(
