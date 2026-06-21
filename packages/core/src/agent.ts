@@ -1,7 +1,8 @@
-import type { AgentEvent, ChatRequest, Product } from "@shopilot/schemas";
+import type { AgentEvent, ChatRequest } from "@shopilot/schemas";
 import type { RunAgentDeps } from "./ports";
 import { ProfileRegistry } from "./ports";
 import { extractQuery } from "./extract-query";
+import { recommend } from "./recommend";
 import { MockDataSourceAdapter } from "./mock-data-source";
 import { appliances } from "./fixtures/appliances";
 import { applianceProfile } from "./profiles/appliance";
@@ -29,18 +30,11 @@ export function createRunAgent(deps: RunAgentDeps): (req: ChatRequest) => AsyncI
     }
 
     yield { type: "products", items };
+    yield { type: "thinking", text: "후보를 비교해 추천 근거를 정리하고 있어요…" };
 
-    // 최저가 = price 최소값. strict < 라 동점이면 정의 순서의 첫 항목으로 안정 선택(결정론).
-    let cheapest: Product | undefined;
-    for (const p of items) {
-      if (cheapest === undefined || p.price < cheapest.price) cheapest = p;
-    }
-    if (cheapest !== undefined) {
-      yield {
-        type: "message",
-        text: `조건에 맞는 상품 ${items.length}개를 찾았어요. 그중 가장 저렴한 건 ${cheapest.title}(${cheapest.price.toLocaleString("ko-KR")}원)이에요.`,
-      };
-    }
+    // 추천 근거는 LLM이 생성(비교 기준·가격·질의). 실패·빈응답이면 recommend 내부에서 결정론 폴백.
+    const text = await recommend(deps.llm, profile ?? applianceProfile, query, items);
+    yield { type: "message", text };
     yield { type: "done" };
   };
 }
