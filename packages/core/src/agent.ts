@@ -1,13 +1,46 @@
-import type { AgentEvent, ChatRequest } from "@shopilot/schemas";
+import type { AgentEvent, ChatRequest, Product } from "@shopilot/schemas";
 import type { RunAgentDeps } from "./ports";
+import { ProfileRegistry } from "./ports";
+import { extractQuery } from "./extract-query";
+import { MockDataSourceAdapter } from "./mock-data-source";
+import { appliances } from "./fixtures/appliances";
+import { applianceProfile } from "./profiles/appliance";
 
 /**
  * 단일 진입점 팩토리. 어댑터·레지스트리를 주입받아 파이프라인을 구동한다.
+ * 흐름: extractQuery → 프로파일 선택 → search → thinking·products·message·done 순차 방출.
  * ⚠️ 외부 통합 시그니처 (req: ChatRequest) → AsyncIterable<AgentEvent> 는 잠긴 계약 — 변경 금지.
  */
-export function createRunAgent(_deps: RunAgentDeps): (req: ChatRequest) => AsyncIterable<AgentEvent> {
-  return (_req: ChatRequest): AsyncIterable<AgentEvent> => {
-    throw new Error("미구현: createRunAgent");
+export function createRunAgent(deps: RunAgentDeps): (req: ChatRequest) => AsyncIterable<AgentEvent> {
+  return async function* (req: ChatRequest): AsyncIterable<AgentEvent> {
+    const query = extractQuery(req.messages, req.category);
+    const profile = query.category !== undefined ? deps.profiles.get(query.category) : null;
+    yield {
+      type: "thinking",
+      text: profile ? `${profile.category} 카테고리에서 조건을 살펴보고 있어요…` : "상품을 찾고 있어요…",
+    };
+
+    const items = await deps.dataSource.search(query);
+    if (items.length === 0) {
+      yield { type: "message", text: "조건에 맞는 상품을 찾지 못했어요. 예산이나 조건을 바꿔서 다시 말씀해 주세요." };
+      yield { type: "done" };
+      return;
+    }
+
+    yield { type: "products", items };
+
+    // 최저가 = price 최소값. strict < 라 동점이면 정의 순서의 첫 항목으로 안정 선택(결정론).
+    let cheapest: Product | undefined;
+    for (const p of items) {
+      if (cheapest === undefined || p.price < cheapest.price) cheapest = p;
+    }
+    if (cheapest !== undefined) {
+      yield {
+        type: "message",
+        text: `조건에 맞는 상품 ${items.length}개를 찾았어요. 그중 가장 저렴한 건 ${cheapest.title}(${cheapest.price.toLocaleString("ko-KR")}원)이에요.`,
+      };
+    }
+    yield { type: "done" };
   };
 }
 
@@ -16,5 +49,7 @@ export function createRunAgent(_deps: RunAgentDeps): (req: ChatRequest) => Async
  * const가 아니라 함수다 → import만으로 목이 인스턴스화되지 않는다(호출 시 조립). 서버가 컴포지션 루트.
  */
 export function createDefaultRunAgent(): (req: ChatRequest) => AsyncIterable<AgentEvent> {
-  throw new Error("미구현: createDefaultRunAgent");
+  const profiles = new ProfileRegistry();
+  profiles.register(applianceProfile);
+  return createRunAgent({ dataSource: new MockDataSourceAdapter(appliances), profiles });
 }
