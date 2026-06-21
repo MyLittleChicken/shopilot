@@ -4,13 +4,13 @@
 
 ## 현재 집중
 
-두 번째 수직 슬라이스(UI) — `ChatPanel`이 SSE를 소비해 멘트·상품 카드를 렌더하고 web·widget이 공유한다. 코어 슬라이스(가전 질의 → 목 상품 SSE)는 `main`에 머지 완료.
+LLM 추천 근거 생성 — 검색된 가전을 LLM이 비교 기준(용량·에너지등급·소음)으로 비교해 추천 이유를 설명한다. 규칙 기반 한 줄 멘트를 대체. 목 우선(MockLLM 결정론 테스트 + ClaudeAdapter는 env 뒤). 첫 수직 슬라이스(계약→코어→서버→UI→연결)는 `main`에 완성.
 
 ## 마일스톤
 
 - [x] 프로젝트 기반 (모노레포 설정 · 문서 · 규칙 · 보안 훅 · 타입체크 CI)
-- [~] 첫 수직 슬라이스 (계약 → 코어 → 서버 → **UI → 연결**) — 코어·서버 완료, UI 진행 중
-- [ ] 실제 LLM·데이터 어댑터 연동
+- [x] 첫 수직 슬라이스 (계약 → 코어 → 서버 → UI → 연결)
+- [~] 실제 LLM·데이터 어댑터 연동 — LLM 추천 근거 진행 중
 - [ ] 카테고리 확장 · 테스트/CI · 배포
 
 ## 스펙 인덱스
@@ -20,4 +20,5 @@
 | 스펙 | 상태 |
 | --- | --- |
 | [첫 수직 슬라이스(코어) — 가전 질의→목 상품 SSE](specs/first-slice-appliance-search.md) | 완료 (main) |
-| [두 번째 슬라이스(UI) — ChatPanel SSE 소비·상품 렌더](specs/second-slice-ui.md) | 진행 중 |
+| [두 번째 슬라이스(UI) — ChatPanel SSE 소비·상품 렌더](specs/second-slice-ui.md) | 완료 (main) |
+| [LLM 추천 근거 생성 — 비교 기준 기반 추천 메시지](specs/third-slice-llm-recommendation.md) | 진행 중 |
