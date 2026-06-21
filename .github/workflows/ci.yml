@@ -1,0 +1,26 @@
+# CI — 타입체크를 PR 게이트로 강제한다.
+# 타입체크가 기본 게이트(.claude/testing.md). 린트·테스트 스텝은 eslint·vitest가
+# 실재화되기 전까지 넣지 않는다 — 아무것도 검사하지 않는 스텝은 '가짜 초록'이 된다.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # packageManager 필드(pnpm@11.5.2)를 읽어 버전을 맞춘다.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -r typecheck
