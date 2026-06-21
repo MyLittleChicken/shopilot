@@ -4,13 +4,27 @@ import { streamSSE } from "hono/streaming";
 import { cors } from "hono/cors";
 import { ChatRequestSchema } from "@shopilot/schemas";
 import type { AgentEvent } from "@shopilot/schemas";
-import { createDefaultRunAgent } from "@shopilot/core";
+import {
+  createRunAgent,
+  ProfileRegistry,
+  MockDataSourceAdapter,
+  appliances,
+  applianceProfile,
+  MockLLMAdapter,
+  ClaudeAdapter,
+} from "@shopilot/core";
 
 // 두뇌 — 에이전트·어댑터·시크릿·SSE. 시크릿(LLM 키 등)은 여기(서버)에서만 process.env로 읽는다.
 const app = new Hono();
 
-// 컴포지션 루트 — 목 deps를 조립해 파이프라인을 한 번 만든다. 실데이터 전환 시 여기만 바꾼다.
-const runAgent = createDefaultRunAgent();
+// 컴포지션 루트 — 키가 있으면 Claude, 없으면 목 LLM(추천은 결정론 폴백). 실데이터 전환도 여기서.
+const apiKey = process.env.ANTHROPIC_API_KEY;
+const llm = apiKey
+  ? new ClaudeAdapter({ apiKey, ...(process.env.ANTHROPIC_MODEL ? { model: process.env.ANTHROPIC_MODEL } : {}) })
+  : new MockLLMAdapter();
+const profiles = new ProfileRegistry();
+profiles.register(applianceProfile);
+const runAgent = createRunAgent({ dataSource: new MockDataSourceAdapter(appliances), profiles, llm });
 
 // 위젯은 외부 도메인에서 호출 → cross-origin 허용. 운영에선 CORS_ORIGIN으로 제한.
 app.use(

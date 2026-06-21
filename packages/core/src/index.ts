@@ -7,7 +7,7 @@ export { extractQuery } from "./extract-query";
 export { MockDataSourceAdapter } from "./mock-data-source";
 export { appliances } from "./fixtures/appliances";
 export { applianceProfile } from "./profiles/appliance";
-export { createRunAgent, createDefaultRunAgent } from "./agent";
+export { createRunAgent } from "./agent";
 export { MockLLMAdapter } from "./mock-llm";
 export { ClaudeAdapter } from "./claude-adapter";
 export { recommend } from "./recommend";
