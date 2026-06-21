@@ -5,6 +5,7 @@ import { extractQuery } from "./extract-query";
 import { MockDataSourceAdapter } from "./mock-data-source";
 import { appliances } from "./fixtures/appliances";
 import { applianceProfile } from "./profiles/appliance";
+import { MockLLMAdapter } from "./mock-llm";
 
 /**
  * 단일 진입점 팩토리. 어댑터·레지스트리를 주입받아 파이프라인을 구동한다.
@@ -51,5 +52,5 @@ export function createRunAgent(deps: RunAgentDeps): (req: ChatRequest) => AsyncI
 export function createDefaultRunAgent(): (req: ChatRequest) => AsyncIterable<AgentEvent> {
   const profiles = new ProfileRegistry();
   profiles.register(applianceProfile);
-  return createRunAgent({ dataSource: new MockDataSourceAdapter(appliances), profiles });
+  return createRunAgent({ dataSource: new MockDataSourceAdapter(appliances), profiles, llm: new MockLLMAdapter() });
 }

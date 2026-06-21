@@ -49,5 +49,5 @@ export class ProfileRegistry {
 export interface RunAgentDeps {
   dataSource: DataSourceAdapter;
   profiles: ProfileRegistry;
-  // llm?: LLMAdapter;  // 슬라이스 1 미사용. 후속 슬라이스에서 주입.
+  llm: LLMAdapter;
 }

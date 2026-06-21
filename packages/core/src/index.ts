@@ -8,3 +8,6 @@ export { MockDataSourceAdapter } from "./mock-data-source";
 export { appliances } from "./fixtures/appliances";
 export { applianceProfile } from "./profiles/appliance";
 export { createRunAgent, createDefaultRunAgent } from "./agent";
+export { MockLLMAdapter } from "./mock-llm";
+export { recommend } from "./recommend";
+export { toLLMChunks } from "./llm-stream";
