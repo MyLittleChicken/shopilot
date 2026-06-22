@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Product } from "@shopilot/schemas";
 import { useChat } from "./use-chat";
 import { ProductCard } from "./product-card";
+import { shopilotStyles } from "./styles";
 
 /**
  * 공유 채팅 패널 — web·widget이 같은 컴포넌트를 쓴다. apiBaseUrl은 각 앱이 주입한다(ui는 env 안 읽음).
@@ -13,6 +14,7 @@ export function ChatPanel({ apiBaseUrl, fetchImpl }: { apiBaseUrl: string; fetch
 
   return (
     <section className="shopilot-panel" role="log" aria-label="Shopilot 대화">
+      <style>{shopilotStyles}</style>
       <ul className="shopilot-messages">
         {messages.map((m, i) => (
           <li key={i} className={`shopilot-msg shopilot-msg--${m.role}`}>
