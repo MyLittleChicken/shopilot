@@ -28,7 +28,20 @@ export class OpenAIAdapter implements LLMAdapter {
   }
 }
 
-/** OpenAI 스트림 청크를 LLMChunk로 매핑. choices[0].delta.content(string)만 취한다. green에서 구현. */
-export async function* toOpenAIChunks(_stream: AsyncIterable<unknown>): AsyncIterable<LLMChunk> {
-  throw new Error("미구현: toOpenAIChunks");
+/** OpenAI 스트림 청크를 LLMChunk로 매핑. choices[0].delta.content(string)만 취한다. */
+export async function* toOpenAIChunks(stream: AsyncIterable<unknown>): AsyncIterable<LLMChunk> {
+  for await (const ev of stream) {
+    const content = deltaContent(ev);
+    if (content !== null) yield { type: "text", text: content };
+  }
+}
+
+/** 청크에서 choices[0].delta.content를 안전하게 꺼낸다(string 아니면 null). */
+function deltaContent(ev: unknown): string | null {
+  if (typeof ev !== "object" || ev === null) return null;
+  const choices = (ev as { choices?: unknown }).choices;
+  if (!Array.isArray(choices) || choices.length === 0) return null;
+  const first = choices[0] as { delta?: { content?: unknown } } | undefined;
+  const content = first?.delta?.content;
+  return typeof content === "string" ? content : null;
 }
