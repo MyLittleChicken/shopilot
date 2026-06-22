@@ -23,4 +23,5 @@
 | [두 번째 슬라이스(UI) — ChatPanel SSE 소비·상품 렌더](specs/second-slice-ui.md) | 완료 (main) |
 | [LLM 추천 근거 생성 — 비교 기준 기반 추천 메시지](specs/third-slice-llm-recommendation.md) | 완료 (main) |
 | [OpenAIAdapter + provider 선택 일반화](specs/openai-adapter.md) | 완료 (main) |
-| [위젯 Shadow DOM 스타일링](specs/widget-styling.md) | 진행 중 |
+| [위젯 Shadow DOM 스타일링](specs/widget-styling.md) | 완료 (main) |
+| [실데이터 어댑터 — HTTP 카탈로그 + selectDataSource](specs/http-datasource.md) | 진행 중 |
