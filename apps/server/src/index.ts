@@ -10,18 +10,14 @@ import {
   MockDataSourceAdapter,
   appliances,
   applianceProfile,
-  MockLLMAdapter,
-  ClaudeAdapter,
+  selectLLM,
 } from "@shopilot/core";
 
 // 두뇌 — 에이전트·어댑터·시크릿·SSE. 시크릿(LLM 키 등)은 여기(서버)에서만 process.env로 읽는다.
 const app = new Hono();
 
-// 컴포지션 루트 — 키가 있으면 Claude, 없으면 목 LLM(추천은 결정론 폴백). 실데이터 전환도 여기서.
-const apiKey = process.env.ANTHROPIC_API_KEY;
-const llm = apiKey
-  ? new ClaudeAdapter({ apiKey, ...(process.env.ANTHROPIC_MODEL ? { model: process.env.ANTHROPIC_MODEL } : {}) })
-  : new MockLLMAdapter();
+// 컴포지션 루트 — selectLLM이 키 우선순위로 provider를 고른다(Anthropic>OpenAI>Mock). 실데이터 전환도 여기서.
+const llm = selectLLM(process.env);
 const profiles = new ProfileRegistry();
 profiles.register(applianceProfile);
 const runAgent = createRunAgent({ dataSource: new MockDataSourceAdapter(appliances), profiles, llm });
