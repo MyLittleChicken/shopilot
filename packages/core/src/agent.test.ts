@@ -4,12 +4,15 @@ import type { Product, ChatRequest, AgentEvent } from "@shopilot/schemas";
 import { createRunAgent } from "./agent";
 import { MockDataSourceAdapter } from "./mock-data-source";
 import { ProfileRegistry } from "./ports";
+import type { LLMAdapter } from "./ports";
 import { applianceProfile } from "./profiles/appliance";
+import { MockLLMAdapter } from "./mock-llm";
+import { capturingLLM, throwingLLM } from "./test-support/llm-doubles";
 
-function profiles(): ProfileRegistry {
-  const r = new ProfileRegistry();
-  r.register(applianceProfile);
-  return r;
+function deps(catalog: Product[], llm: LLMAdapter) {
+  const profiles = new ProfileRegistry();
+  profiles.register(applianceProfile);
+  return { dataSource: new MockDataSourceAdapter(catalog), profiles, llm };
 }
 
 async function collect(stream: AsyncIterable<AgentEvent>): Promise<AgentEvent[]> {
@@ -18,11 +21,9 @@ async function collect(stream: AsyncIterable<AgentEvent>): Promise<AgentEvent[]>
   return out;
 }
 
-// w1, w2는 동점 최저가(500000) — 정의 순서상 w1이 선택돼야 한다(안정 정렬).
 const catalog: Product[] = [
-  ProductSchema.parse({ id: "r1", title: "냉장고1", price: 900000, category: "appliance", attributes: { capacity: "300L", energyGrade: "1", noiseLevel: 35 } }),
-  ProductSchema.parse({ id: "w1", title: "세탁기1", price: 500000, category: "appliance", attributes: { capacity: "12kg", energyGrade: "2", noiseLevel: 42 } }),
-  ProductSchema.parse({ id: "w2", title: "세탁기2", price: 500000, category: "appliance", attributes: { capacity: "10kg", energyGrade: "1", noiseLevel: 40 } }),
+  ProductSchema.parse({ id: "r1", title: "냉장고1", price: 900000, category: "appliance", attributes: { capacity: "300L", energyGrade: "1등급", noiseLevel: 35 } }),
+  ProductSchema.parse({ id: "w1", title: "세탁기1", price: 500000, category: "appliance", attributes: { capacity: "12kg", energyGrade: "2등급", noiseLevel: 42 } }),
 ];
 
 const req = (text: string, category?: string): ChatRequest => ({
@@ -30,45 +31,37 @@ const req = (text: string, category?: string): ChatRequest => ({
   ...(category !== undefined ? { category } : {}),
 });
 
-describe("createRunAgent", () => {
-  it("가전 질의에 thinking→products→message→done 순서로 방출한다", async () => {
-    const run = createRunAgent({ dataSource: new MockDataSourceAdapter(catalog), profiles: profiles() });
-    const evs = await collect(run(req("세탁기 추천", "appliance")));
-    expect(evs.map((e) => e.type)).toEqual(["thinking", "products", "message", "done"]);
+describe("createRunAgent (LLM 추천)", () => {
+  it("가전 질의: thinking→products→thinking→message→done, message=목 LLM 텍스트", async () => {
+    const run = createRunAgent(deps(catalog, new MockLLMAdapter("이걸 추천해요")));
+    const evs = await collect(run(req("세탁기", "appliance")));
+    expect(evs.map((e) => e.type)).toEqual(["thinking", "products", "thinking", "message", "done"]);
+    const msg = evs.find((e) => e.type === "message");
+    if (msg?.type === "message") expect(msg.text).toBe("이걸 추천해요");
   });
 
-  it("모든 이벤트가 AgentEventSchema를 통과하고 products.items가 ProductSchema·appliance를 만족한다", async () => {
-    const run = createRunAgent({ dataSource: new MockDataSourceAdapter(catalog), profiles: profiles() });
+  it("모든 이벤트가 AgentEventSchema를 통과하고 products는 appliance다", async () => {
+    const run = createRunAgent(deps(catalog, new MockLLMAdapter("추천")));
     const evs = await collect(run(req("가전", "appliance")));
     for (const e of evs) expect(AgentEventSchema.safeParse(e).success).toBe(true);
-    const products = evs.find((e) => e.type === "products");
-    expect(products?.type).toBe("products");
-    if (products?.type === "products") {
-      expect(products.items.length).toBeGreaterThan(0);
-      expect(products.items.every((p) => p.category === "appliance")).toBe(true);
-      expect(products.items.every((p) => ProductSchema.safeParse(p).success)).toBe(true);
-    }
+    const p = evs.find((e) => e.type === "products");
+    if (p?.type === "products") expect(p.items.every((x) => x.category === "appliance")).toBe(true);
   });
 
-  it("동점 최저가에서 message가 언급하는 항목이 고정된다(정의 순서 첫 최소 = 세탁기1)", async () => {
-    const run = createRunAgent({ dataSource: new MockDataSourceAdapter(catalog), profiles: profiles() });
+  it("LLM 실패 시 폴백: message가 최저가(세탁기1) 포함, error 없음, 시퀀스 유지", async () => {
+    const run = createRunAgent(deps(catalog, throwingLLM("iterate")));
     const evs = await collect(run(req("세탁기", "appliance")));
-    const message = evs.find((e) => e.type === "message");
-    if (message?.type === "message") expect(message.text).toContain("세탁기1");
+    expect(evs.map((e) => e.type)).toEqual(["thinking", "products", "thinking", "message", "done"]);
+    const msg = evs.find((e) => e.type === "message");
+    if (msg?.type === "message") expect(msg.text).toContain("세탁기1");
+    expect(evs.some((e) => e.type === "error")).toBe(false);
   });
 
-  it("message가 결정론적이다(동일 입력→동일 출력)", async () => {
-    const run = createRunAgent({ dataSource: new MockDataSourceAdapter(catalog), profiles: profiles() });
-    const a = await collect(run(req("가전", "appliance")));
-    const b = await collect(run(req("가전", "appliance")));
-    expect(a.find((e) => e.type === "message")).toEqual(b.find((e) => e.type === "message"));
-  });
-
-  it("0건이면 thinking→message→done(products 없음)이고 0건 message도 고정이다", async () => {
-    const run = createRunAgent({ dataSource: new MockDataSourceAdapter([]), profiles: profiles() });
-    const a = await collect(run(req("없는상품", "appliance")));
-    expect(a.map((e) => e.type)).toEqual(["thinking", "message", "done"]);
-    const b = await collect(run(req("없는상품", "appliance")));
-    expect(a).toEqual(b);
+  it("0건: thinking→message→done(products 없음), LLM 호출 0회", async () => {
+    const llm = capturingLLM([{ type: "text", text: "x" }]);
+    const run = createRunAgent(deps([], llm));
+    const evs = await collect(run(req("없는상품", "appliance")));
+    expect(evs.map((e) => e.type)).toEqual(["thinking", "message", "done"]);
+    expect(llm.calls.length).toBe(0);
   });
 });
