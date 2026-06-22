@@ -4,6 +4,7 @@
  */
 export { ProductCard } from "./product-card";
 export { ChatPanel } from "./chat-panel";
+export { shopilotStyles } from "./styles";
 export { useChat } from "./use-chat";
 export type { UseChat } from "./use-chat";
 export { streamChat } from "./chat-client";

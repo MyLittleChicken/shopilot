@@ -47,4 +47,14 @@ describe("ChatPanel", () => {
 
     await waitFor(() => expect(screen.queryByRole("status")).toBeNull());
   });
+
+  it("스타일(<style>)을 동반 렌더해 Shadow DOM에서도 적용되게 한다", () => {
+    const { container } = render(<ChatPanel apiBaseUrl="http://x" />);
+    const style = container.querySelector("style");
+    expect(style).toBeTruthy();
+    const css = style?.textContent ?? "";
+    expect(css).toContain(".shopilot-panel");
+    expect(css).toContain(".shopilot-card");
+    expect(css).toContain("@container");
+  });
 });

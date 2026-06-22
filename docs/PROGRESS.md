@@ -22,4 +22,5 @@
 | [첫 수직 슬라이스(코어) — 가전 질의→목 상품 SSE](specs/first-slice-appliance-search.md) | 완료 (main) |
 | [두 번째 슬라이스(UI) — ChatPanel SSE 소비·상품 렌더](specs/second-slice-ui.md) | 완료 (main) |
 | [LLM 추천 근거 생성 — 비교 기준 기반 추천 메시지](specs/third-slice-llm-recommendation.md) | 완료 (main) |
-| [OpenAIAdapter + provider 선택 일반화](specs/openai-adapter.md) | 진행 중 |
+| [OpenAIAdapter + provider 선택 일반화](specs/openai-adapter.md) | 완료 (main) |
+| [위젯 Shadow DOM 스타일링](specs/widget-styling.md) | 진행 중 |
