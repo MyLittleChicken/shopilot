@@ -57,11 +57,14 @@ describe("createRunAgent (LLM 추천)", () => {
     expect(evs.some((e) => e.type === "error")).toBe(false);
   });
 
-  it("0건: thinking→message→done(products 없음), LLM 호출 0회", async () => {
+  it("0건: thinking→message→done(없음), understandQuery로 llm 1회만(recommend 미호출)", async () => {
     const llm = capturingLLM([{ type: "text", text: "x" }]);
     const run = createRunAgent(deps([], llm));
     const evs = await collect(run(req("없는상품", "appliance")));
     expect(evs.map((e) => e.type)).toEqual(["thinking", "message", "done"]);
-    expect(llm.calls.length).toBe(0);
+    const msg = evs.find((e) => e.type === "message");
+    if (msg?.type === "message") expect(msg.text).toContain("찾지 못했어요");
+    // understandQuery가 검색 전 llm 1회 호출, recommend는 0건이라 미호출 → calls===1
+    expect(llm.calls.length).toBe(1);
   });
 });

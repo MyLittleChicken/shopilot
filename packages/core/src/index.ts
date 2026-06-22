@@ -4,6 +4,7 @@
  */
 export * from "./ports";
 export { extractQuery } from "./extract-query";
+export { understandQuery } from "./understand-query";
 export { MockDataSourceAdapter } from "./mock-data-source";
 export { HttpDataSourceAdapter } from "./http-data-source";
 export { selectDataSource } from "./select-data-source";

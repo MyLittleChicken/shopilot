@@ -1,6 +1,6 @@
 import type { AgentEvent, ChatRequest } from "@shopilot/schemas";
 import type { RunAgentDeps } from "./ports";
-import { extractQuery } from "./extract-query";
+import { understandQuery } from "./understand-query";
 import { recommend } from "./recommend";
 import { applianceProfile } from "./profiles/appliance";
 
@@ -11,7 +11,7 @@ import { applianceProfile } from "./profiles/appliance";
  */
 export function createRunAgent(deps: RunAgentDeps): (req: ChatRequest) => AsyncIterable<AgentEvent> {
   return async function* (req: ChatRequest): AsyncIterable<AgentEvent> {
-    const query = extractQuery(req.messages, req.category);
+    const query = await understandQuery(deps.llm, req.messages, req.category);
     const profile = query.category !== undefined ? deps.profiles.get(query.category) : null;
     yield {
       type: "thinking",
