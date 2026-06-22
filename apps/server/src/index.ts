@@ -11,16 +11,19 @@ import {
   appliances,
   applianceProfile,
   selectLLM,
+  selectDataSource,
 } from "@shopilot/core";
 
 // 두뇌 — 에이전트·어댑터·시크릿·SSE. 시크릿(LLM 키 등)은 여기(서버)에서만 process.env로 읽는다.
 const app = new Hono();
 
-// 컴포지션 루트 — selectLLM이 키 우선순위로 provider를 고른다(Anthropic>OpenAI>Mock). 실데이터 전환도 여기서.
+// 컴포지션 루트 — selectLLM이 provider를(Anthropic>OpenAI>Mock), selectDataSource가
+// 데이터 소스를(CATALOG_API_URL 있으면 HTTP, 없으면 목) 고른다. 시크릿·URL은 서버 출처.
 const llm = selectLLM(process.env);
+const dataSource = selectDataSource(process.env, new MockDataSourceAdapter(appliances));
 const profiles = new ProfileRegistry();
 profiles.register(applianceProfile);
-const runAgent = createRunAgent({ dataSource: new MockDataSourceAdapter(appliances), profiles, llm });
+const runAgent = createRunAgent({ dataSource, profiles, llm });
 
 // 위젯은 외부 도메인에서 호출 → cross-origin 허용. 운영에선 CORS_ORIGIN으로 제한.
 app.use(
