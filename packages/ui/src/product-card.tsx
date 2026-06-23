@@ -11,6 +11,15 @@ export function ProductCard({ product }: { product: Product }) {
   const attrs = displayableAttributes(product.attributes);
   return (
     <article className="shopilot-card">
+      <div className="shopilot-card__media">
+        {product.imageUrl !== undefined ? (
+          <img src={product.imageUrl} alt={product.title} loading="lazy" />
+        ) : (
+          <span className="shopilot-card__placeholder" aria-hidden="true">
+            {product.title.slice(0, 1)}
+          </span>
+        )}
+      </div>
       <strong className="shopilot-card__title">{product.title}</strong>
       {product.brand !== undefined && <span className="shopilot-card__brand">{product.brand}</span>}
       <span className="shopilot-card__price">{product.price.toLocaleString("ko-KR")}원</span>
