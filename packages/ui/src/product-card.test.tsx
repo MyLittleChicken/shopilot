@@ -34,4 +34,14 @@ describe("ProductCard", () => {
     expect(screen.getByText(/1등급/)).toBeTruthy();
     expect(screen.getByText(/42/)).toBeTruthy();
   });
+
+  it("imageUrl 있으면 <img>, 없으면 플레이스홀더(이미지 슬롯)를 렌더한다", () => {
+    const withImg = ProductSchema.parse({ id: "i", title: "이미지상품", price: 1000, category: "appliance", imageUrl: "https://example.com/a.png" });
+    const { container } = render(<ProductCard product={withImg} />);
+    expect(container.querySelector(".shopilot-card__media img")?.getAttribute("src")).toBe("https://example.com/a.png");
+
+    const { container: c2 } = render(<ProductCard product={product} />);
+    expect(c2.querySelector(".shopilot-card__media")).toBeTruthy();
+    expect(c2.querySelector(".shopilot-card__media img")).toBeNull();
+  });
 });
