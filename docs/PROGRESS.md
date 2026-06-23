@@ -4,14 +4,14 @@
 
 ## 현재 집중
 
-확장 배치(순차) — ⓐ OpenAIAdapter+provider 선택 일반화 · ⓑ 위젯 Shadow DOM 스타일링 · ⓒ 실데이터 어댑터 · ⓓ LLM 질의 이해. 모두 목 우선(키/실백엔드 없이 빌드·테스트, 실키 검증 후순위). 첫 수직 슬라이스·LLM 추천 근거는 `main`에 완성.
+UI 폴리시 — 등장 애니메이션·로딩 모션·상품 이미지 슬롯(접근성 prefers-reduced-motion). "동작은 되는데 시각 마감이 없다"는 격차를 메운다. 확장 배치(ⓐ provider 일반화 · ⓑ 위젯 스타일 · ⓒ 실데이터 어댑터 · ⓓ LLM 질의이해)는 `main`에 완성.
 
 ## 마일스톤
 
 - [x] 프로젝트 기반 (모노레포 설정 · 문서 · 규칙 · 보안 훅 · 타입체크 CI)
 - [x] 첫 수직 슬라이스 (계약 → 코어 → 서버 → UI → 연결)
-- [~] 실제 LLM·데이터 어댑터 연동 — LLM 추천 근거 완료, provider 확장·실데이터 진행
-- [ ] 카테고리 확장 · 테스트/CI · 배포
+- [~] 실제 LLM·데이터 어댑터 연동 — 추천·질의이해·provider 2종·데이터 2종 구현 완료, 라이브 키/백엔드 검증 후순위
+- [ ] 카테고리 확장 · 배포 · UI 폴리시
 
 ## 스펙 인덱스
 
@@ -25,4 +25,5 @@
 | [OpenAIAdapter + provider 선택 일반화](specs/openai-adapter.md) | 완료 (main) |
 | [위젯 Shadow DOM 스타일링](specs/widget-styling.md) | 완료 (main) |
 | [실데이터 어댑터 — HTTP 카탈로그 + selectDataSource](specs/http-datasource.md) | 완료 (main) |
-| [LLM 질의 이해 — 자연어에서 예산(budgetMax) 추출](specs/llm-query-understanding.md) | 진행 중 |
+| [LLM 질의 이해 — 자연어에서 예산(budgetMax) 추출](specs/llm-query-understanding.md) | 완료 (main) |
+| [UI 폴리시 — 애니메이션·로딩 모션·상품 이미지](specs/ui-polish.md) | 진행 중 |

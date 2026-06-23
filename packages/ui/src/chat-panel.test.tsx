@@ -56,5 +56,7 @@ describe("ChatPanel", () => {
     expect(css).toContain(".shopilot-panel");
     expect(css).toContain(".shopilot-card");
     expect(css).toContain("@container");
+    expect(css).toContain("@keyframes");
+    expect(css).toContain("prefers-reduced-motion");
   });
 });

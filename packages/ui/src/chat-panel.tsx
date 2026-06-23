@@ -24,8 +24,10 @@ export function ChatPanel({ apiBaseUrl, fetchImpl }: { apiBaseUrl: string; fetch
       </ul>
 
       {status === "streaming" && (
-        <p className="shopilot-loading" role="status">
-          응답을 받고 있어요…
+        <p className="shopilot-loading" role="status" aria-label="응답을 받는 중">
+          <span className="dot" />
+          <span className="dot" />
+          <span className="dot" />
         </p>
       )}
 

@@ -4,6 +4,8 @@
  * 컨테이너 쿼리로 좁은 위젯(1열)·넓은 웹(2~3열) 양쪽 대응.
  */
 export const shopilotStyles = `
+@keyframes shopilot-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes shopilot-blink { 0%, 80%, 100% { opacity: 0.25; } 40% { opacity: 1; } }
 .shopilot-panel {
   container-type: inline-size;
   display: flex;
@@ -33,6 +35,7 @@ export const shopilotStyles = `
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
+  animation: shopilot-rise 0.25s ease both;
 }
 .shopilot-msg--user {
   align-self: flex-end;
@@ -46,9 +49,19 @@ export const shopilotStyles = `
 }
 .shopilot-loading {
   margin: 0;
-  font-size: 13px;
-  color: #6b7280;
+  display: flex;
+  gap: 4px;
+  align-items: center;
 }
+.shopilot-loading .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #9aa3b2;
+  animation: shopilot-blink 1.2s infinite both;
+}
+.shopilot-loading .dot:nth-child(2) { animation-delay: 0.2s; }
+.shopilot-loading .dot:nth-child(3) { animation-delay: 0.4s; }
 .shopilot-products {
   display: grid;
   grid-template-columns: 1fr;
@@ -68,7 +81,20 @@ export const shopilotStyles = `
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   background: #fff;
+  animation: shopilot-rise 0.3s ease both;
 }
+.shopilot-card__media {
+  aspect-ratio: 4 / 3;
+  margin-bottom: 4px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.shopilot-card__media img { width: 100%; height: 100%; object-fit: cover; }
+.shopilot-card__placeholder { font-size: 22px; font-weight: 700; color: #a5b4fc; }
 .shopilot-card__title { font-size: 14px; font-weight: 600; }
 .shopilot-card__brand { font-size: 12px; color: #6b7280; }
 .shopilot-card__price { font-size: 15px; font-weight: 700; color: #111827; }
@@ -116,5 +142,9 @@ export const shopilotStyles = `
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .shopilot-msg, .shopilot-card { animation: none; }
+  .shopilot-loading .dot { animation: none; }
 }
 `;
