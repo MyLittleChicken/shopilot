@@ -42,6 +42,7 @@ export type ChatRequest = z.infer<typeof ChatRequestSchema>;
 export const AgentEventSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("thinking"), text: z.string() }),
   z.object({ type: z.literal("message"), text: z.string() }),
+  z.object({ type: z.literal("message_delta"), text: z.string() }),
   z.object({ type: z.literal("products"), items: z.array(ProductSchema) }),
   z.object({ type: z.literal("done") }),
   z.object({ type: z.literal("error"), message: z.string() }),

@@ -29,4 +29,20 @@ describe("useChat", () => {
     expect(counter.calls).toBe(0);
     expect(result.current.messages.length).toBe(0);
   });
+
+  it("연속 message_delta를 하나의 어시스턴트 메시지로 누적한다", async () => {
+    const deltas = [
+      frame({ type: "message_delta", text: "이 " }),
+      frame({ type: "message_delta", text: "제품을 " }),
+      frame({ type: "message_delta", text: "추천" }),
+      frame({ type: "done" }),
+    ].join("");
+    const { result } = renderHook(() => useChat({ apiBaseUrl: "http://x", fetchImpl: sseFetch([deltas]) }));
+    act(() => result.current.send("가전"));
+    await waitFor(() => {
+      const assistant = result.current.messages.filter((m) => m.role === "assistant");
+      expect(assistant.length).toBe(1);
+      expect(assistant[0]?.content).toBe("이 제품을 추천");
+    });
+  });
 });

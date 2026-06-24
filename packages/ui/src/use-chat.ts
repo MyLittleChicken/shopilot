@@ -30,10 +30,21 @@ export function useChat(opts: { apiBaseUrl: string; fetchImpl?: typeof fetch }):
 
       const request: ChatRequest = { messages: [{ role: "user", content: q }] };
       void (async () => {
+        let assistantOpen = false; // 진행 중 어시스턴트 말풍선이 열렸는지
         try {
           for await (const ev of streamChat(apiBaseUrl, request, fetchImpl)) {
             if (ev.type === "products") setProducts(ev.items);
-            else if (ev.type === "message") setMessages((prev) => [...prev, { role: "assistant", content: ev.text }]);
+            else if (ev.type === "message_delta") {
+              const delta = ev.text;
+              if (!assistantOpen) {
+                assistantOpen = true;
+                setMessages((prev) => [...prev, { role: "assistant", content: delta }]);
+              } else {
+                setMessages((prev) =>
+                  prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: m.content + delta } : m)),
+                );
+              }
+            } else if (ev.type === "message") setMessages((prev) => [...prev, { role: "assistant", content: ev.text }]);
             else if (ev.type === "error") setMessages((prev) => [...prev, { role: "assistant", content: ev.message }]);
           }
         } finally {

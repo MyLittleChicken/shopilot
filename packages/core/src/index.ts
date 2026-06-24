@@ -15,5 +15,5 @@ export { MockLLMAdapter } from "./mock-llm";
 export { ClaudeAdapter } from "./claude-adapter";
 export { OpenAIAdapter, toOpenAIChunks } from "./openai-adapter";
 export { selectLLM } from "./select-llm";
-export { recommend } from "./recommend";
+export { recommend, recommendStream } from "./recommend";
 export { toLLMChunks } from "./llm-stream";
