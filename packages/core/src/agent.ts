@@ -1,7 +1,7 @@
 import type { AgentEvent, ChatRequest } from "@shopilot/schemas";
 import type { RunAgentDeps } from "./ports";
 import { understandQuery } from "./understand-query";
-import { recommend } from "./recommend";
+import { recommendStream } from "./recommend";
 import { applianceProfile } from "./profiles/appliance";
 
 /**
@@ -28,9 +28,10 @@ export function createRunAgent(deps: RunAgentDeps): (req: ChatRequest) => AsyncI
     yield { type: "products", items };
     yield { type: "thinking", text: "후보를 비교해 추천 근거를 정리하고 있어요…" };
 
-    // 추천 근거는 LLM이 생성(비교 기준·가격·질의). 실패·빈응답이면 recommend 내부에서 결정론 폴백.
-    const text = await recommend(deps.llm, profile ?? applianceProfile, query, items);
-    yield { type: "message", text };
+    // 추천 근거를 토큰 단위로 흘린다(타이핑 효과). 실패·빈응답이면 recommendStream 내부에서 결정론 폴백.
+    for await (const delta of recommendStream(deps.llm, profile ?? applianceProfile, query, items)) {
+      yield { type: "message_delta", text: delta };
+    }
     yield { type: "done" };
   };
 }

@@ -2,42 +2,45 @@ import type { Product, ProductQuery } from "@shopilot/schemas";
 import type { CategoryProfile, LLMAdapter } from "./ports";
 
 /**
- * LLM으로 추천 근거를 생성한다. 비교 기준(compareKeys)·가격·질의를 프롬프트에 담아
- * llm.stream의 text 청크를 누적한다. 실패·빈응답이면 내부 폴백(결정론 규칙 멘트)을 반환한다.
- * ⚠️ 절대 throw하지 않는다 — .stream() 호출·이터레이션 두 실패를 한 try로 잡고 폴백한다.
+ * 추천 근거를 청크 단위로 yield(타이핑 스트리밍용). llm.stream의 text 청크를 그대로 흘린다.
+ * .stream 호출·이터레이션 실패는 catch하고, 누적 텍스트가 비면 폴백을 1청크로 yield. ⚠️ throw 안 함.
  */
-/** 추천 근거를 청크 단위로 yield(타이핑 스트리밍용). 실패·빈응답이면 폴백을 1청크로. green에서 구현. */
 export async function* recommendStream(
-  _llm: LLMAdapter,
-  _profile: CategoryProfile,
-  _query: ProductQuery,
-  _products: Product[],
-): AsyncIterable<string> {
-  throw new Error("미구현: recommendStream");
-}
-
-export async function recommend(
   llm: LLMAdapter,
   profile: CategoryProfile,
   query: ProductQuery,
   products: Product[],
-): Promise<string> {
+): AsyncIterable<string> {
   const system =
     `${profile.systemPrompt}\n\n` +
     `비교 기준(${profile.compareKeys.join("·")})과 가격으로 후보를 비교하고, ` +
     `사용자 질의(용도·예산)에 가장 맞는 1~2개를 근거와 함께 간결한 한국어로 추천하세요.`;
   const userContent = buildUserContent(profile, query, products);
 
+  let acc = "";
   try {
-    let acc = "";
     for await (const chunk of llm.stream({ messages: [{ role: "user", content: userContent }], system })) {
-      if (chunk.type === "text") acc += chunk.text;
+      if (chunk.type === "text" && chunk.text.length > 0) {
+        acc += chunk.text;
+        yield chunk.text;
+      }
     }
-    if (acc.trim().length > 0) return acc;
   } catch {
     // 폴백으로 떨어진다
   }
-  return fallback(products);
+  if (acc.trim().length === 0) yield fallback(products);
+}
+
+/** recommendStream을 합친 편의 래퍼(비스트리밍 소비처·테스트용). */
+export async function recommend(
+  llm: LLMAdapter,
+  profile: CategoryProfile,
+  query: ProductQuery,
+  products: Product[],
+): Promise<string> {
+  let out = "";
+  for await (const chunk of recommendStream(llm, profile, query, products)) out += chunk;
+  return out;
 }
 
 /** 결정론 프롬프트 본문. attributes 값은 unknown이라 string/number만 안전하게 포함. */
