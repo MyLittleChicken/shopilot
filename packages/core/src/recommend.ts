@@ -6,6 +6,16 @@ import type { CategoryProfile, LLMAdapter } from "./ports";
  * llm.stream의 text 청크를 누적한다. 실패·빈응답이면 내부 폴백(결정론 규칙 멘트)을 반환한다.
  * ⚠️ 절대 throw하지 않는다 — .stream() 호출·이터레이션 두 실패를 한 try로 잡고 폴백한다.
  */
+/** 추천 근거를 청크 단위로 yield(타이핑 스트리밍용). 실패·빈응답이면 폴백을 1청크로. green에서 구현. */
+export async function* recommendStream(
+  _llm: LLMAdapter,
+  _profile: CategoryProfile,
+  _query: ProductQuery,
+  _products: Product[],
+): AsyncIterable<string> {
+  throw new Error("미구현: recommendStream");
+}
+
 export async function recommend(
   llm: LLMAdapter,
   profile: CategoryProfile,

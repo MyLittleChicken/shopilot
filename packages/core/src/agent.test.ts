@@ -32,12 +32,12 @@ const req = (text: string, category?: string): ChatRequest => ({
 });
 
 describe("createRunAgent (LLM 추천)", () => {
-  it("가전 질의: thinking→products→thinking→message→done, message=목 LLM 텍스트", async () => {
+  it("가전 질의: thinking→products→thinking→message_delta→done, 델타 합 = 목 LLM 텍스트", async () => {
     const run = createRunAgent(deps(catalog, new MockLLMAdapter("이걸 추천해요")));
     const evs = await collect(run(req("세탁기", "appliance")));
-    expect(evs.map((e) => e.type)).toEqual(["thinking", "products", "thinking", "message", "done"]);
-    const msg = evs.find((e) => e.type === "message");
-    if (msg?.type === "message") expect(msg.text).toBe("이걸 추천해요");
+    expect(evs.map((e) => e.type)).toEqual(["thinking", "products", "thinking", "message_delta", "done"]);
+    const text = evs.flatMap((e) => (e.type === "message_delta" ? [e.text] : [])).join("");
+    expect(text).toBe("이걸 추천해요");
   });
 
   it("모든 이벤트가 AgentEventSchema를 통과하고 products는 appliance다", async () => {
@@ -48,12 +48,12 @@ describe("createRunAgent (LLM 추천)", () => {
     if (p?.type === "products") expect(p.items.every((x) => x.category === "appliance")).toBe(true);
   });
 
-  it("LLM 실패 시 폴백: message가 최저가(세탁기1) 포함, error 없음, 시퀀스 유지", async () => {
+  it("LLM 실패 시 폴백: message_delta가 최저가(세탁기1) 포함, error 없음, 시퀀스 유지", async () => {
     const run = createRunAgent(deps(catalog, throwingLLM("iterate")));
     const evs = await collect(run(req("세탁기", "appliance")));
-    expect(evs.map((e) => e.type)).toEqual(["thinking", "products", "thinking", "message", "done"]);
-    const msg = evs.find((e) => e.type === "message");
-    if (msg?.type === "message") expect(msg.text).toContain("세탁기1");
+    expect(evs.map((e) => e.type)).toEqual(["thinking", "products", "thinking", "message_delta", "done"]);
+    const text = evs.flatMap((e) => (e.type === "message_delta" ? [e.text] : [])).join("");
+    expect(text).toContain("세탁기1");
     expect(evs.some((e) => e.type === "error")).toBe(false);
   });
 

@@ -1,9 +1,15 @@
 import { describe, it, expect } from "vitest";
 import { ProductSchema, ProductQuerySchema } from "@shopilot/schemas";
 import type { Product } from "@shopilot/schemas";
-import { recommend } from "./recommend";
+import { recommend, recommendStream } from "./recommend";
 import { applianceProfile } from "./profiles/appliance";
 import { capturingLLM, throwingLLM } from "./test-support/llm-doubles";
+
+async function collectStream(s: AsyncIterable<string>): Promise<string> {
+  let out = "";
+  for await (const c of s) out += c;
+  return out;
+}
 
 const products: Product[] = [
   ProductSchema.parse({ id: "r1", title: "냉장고1", price: 900000, category: "appliance", attributes: { capacity: "300L", energyGrade: "1등급", noiseLevel: 35 } }),
@@ -60,5 +66,21 @@ describe("recommend", () => {
   it("누적 텍스트가 공백뿐이면 폴백 반환", async () => {
     const llm = capturingLLM([{ type: "text", text: "   " }]);
     expect(await recommend(llm, applianceProfile, query, products)).toContain("세탁기1");
+  });
+});
+
+describe("recommendStream", () => {
+  it("text 청크를 순서대로 yield한다(tool_call 무시)", async () => {
+    const llm = capturingLLM([
+      { type: "text", text: "이 " },
+      { type: "tool_call", name: "x", args: {} },
+      { type: "text", text: "제품" },
+    ]);
+    expect(await collectStream(recommendStream(llm, applianceProfile, query, products))).toBe("이 제품");
+  });
+
+  it("실패/빈응답이면 폴백을 yield한다", async () => {
+    expect(await collectStream(recommendStream(throwingLLM("iterate"), applianceProfile, query, products))).toContain("세탁기1");
+    expect(await collectStream(recommendStream(capturingLLM([]), applianceProfile, query, products))).toContain("세탁기1");
   });
 });
