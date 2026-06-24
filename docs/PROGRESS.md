@@ -4,7 +4,7 @@
 
 ## 현재 집중
 
-UI 폴리시 — 등장 애니메이션·로딩 모션·상품 이미지 슬롯(접근성 prefers-reduced-motion). "동작은 되는데 시각 마감이 없다"는 격차를 메운다. 확장 배치(ⓐ provider 일반화 · ⓑ 위젯 스타일 · ⓒ 실데이터 어댑터 · ⓓ LLM 질의이해)는 `main`에 완성.
+토큰 단위 스트리밍 — LLM 추천 멘트를 청크 단위로 흘려 타이핑처럼 점진 렌더(`AgentEvent`에 `message_delta` 추가, schemas→core→ui 가로지름). UI 폴리시(애니메이션·이미지)·확장 배치(ⓐ-ⓓ)는 `main`에 완성.
 
 ## 마일스톤
 
@@ -26,4 +26,5 @@ UI 폴리시 — 등장 애니메이션·로딩 모션·상품 이미지 슬롯(
 | [위젯 Shadow DOM 스타일링](specs/widget-styling.md) | 완료 (main) |
 | [실데이터 어댑터 — HTTP 카탈로그 + selectDataSource](specs/http-datasource.md) | 완료 (main) |
 | [LLM 질의 이해 — 자연어에서 예산(budgetMax) 추출](specs/llm-query-understanding.md) | 완료 (main) |
-| [UI 폴리시 — 애니메이션·로딩 모션·상품 이미지](specs/ui-polish.md) | 진행 중 |
+| [UI 폴리시 — 애니메이션·로딩 모션·상품 이미지](specs/ui-polish.md) | 완료 (main) |
+| [토큰 단위 스트리밍 — 추천 멘트 타이핑](specs/token-streaming.md) | 진행 중 |
